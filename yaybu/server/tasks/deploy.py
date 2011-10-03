@@ -1,0 +1,156 @@
+
+from twisted.conch.ssh import transport, userauth, connection, common, keys, channel
+from twisted.internet import defer, protocol, reactor
+from twisted.python import log
+import struct, sys, getpass, os
+
+from twisted.web.http import HTTPChannel, Request
+
+
+USER = 'john'
+HOST = 'localhost'
+
+class SimpleTransport(transport.SSHClientTransport):
+    def verifyHostKey(self, hostKey, fingerprint):
+        print 'host key fingerprint: %s' % fingerprint
+        return defer.succeed(1) 
+
+    def connectionSecure(self):
+        self.requestService(
+            SimpleUserAuth(USER,
+                YaybuConnection()))
+
+    def getPeer(self):
+        return ('', )
+
+    def getHost(self):
+        return ('', )
+
+
+class SimpleUserAuth(userauth.SSHUserAuthClient):
+    def getPassword(self):
+        return defer.succeed(getpass.getpass("%s@%s's password: " % (USER, HOST)))
+
+    def getGenericAnswers(self, name, instruction, questions):
+        print name
+        print instruction
+        answers = []
+        for prompt, echo in questions:
+            if echo:
+                answer = raw_input(prompt)
+            else:
+                answer = getpass.getpass(prompt)
+            answers.append(answer)
+        return defer.succeed(answers)
+
+    def getPublicKey(self):
+        path = os.path.expanduser('~/.ssh/id_dsa')
+        # this works with rsa too
+        # just change the name here and in getPrivateKey
+        if not os.path.exists(path) or self.lastPublicKey:
+            # the file doesn't exist, or we've tried a public key
+            return
+        return keys.Key.fromFile(filename=path+'.pub').blob()
+
+    def getPrivateKey(self):
+        path = os.path.expanduser('~/.ssh/id_dsa')
+        return defer.succeed(keys.Key.fromFile(path).keyObject)
+
+class YaybuConnection(connection.SSHConnection):
+
+    def serviceStarted(self):
+        self.openChannel(YaybuChannel())
+
+
+class YaybuRequest(Request):
+
+    def four_oh_four(self):
+        self.setResponseCode(404)
+        self.setHeader("Content-Type", "application/octect-stream")
+        self.setHeader('Connection', 'close')#keep-alive')
+        self.setHeader('Content-Length', '0')
+        self.finish()
+
+    def process_config(self):
+        import pickle
+        body = pickle.dumps(dict(resources=[dict(File=dict(name="/tmp/example"))]))
+
+        self.setResponseCode(200)
+        self.setHeader("Content-Type", "application/octect-stream")
+        self.setHeader('Content-Length', str(len(body)))
+        self.setHeader('Connection', 'close') #keep-alive')
+        self.write(body)
+        self.finish()
+
+    def process_changelog(self):
+        body = self.content.read()
+        log.msg(body)
+
+        self.setResponseCode(200)
+        self.setHeader("Content-Type", "application/octet-stream")
+        self.setHeader("Content-Length", "0")
+        self.setHeader("Connection", 'close')#keep-alive')
+        self.write('')
+        self.finish()
+
+    def process(self):
+        log.msg(self.clientproto)
+        log.msg(self.getAllHeaders())
+
+        if not self.path.startswith("/"):
+            self.four_oh_four()
+            return
+
+        path = self.path[1:]
+
+        if path.endswith("/"):
+            path = path[:-1]
+
+        if "/" in path:
+            self.four_oh_four()
+            return
+
+        print path
+
+        if hasattr(self, "process_" + path):
+            getattr(self, "process_" + path)()
+            return
+
+        self.four_oh_four()
+
+
+class YaybuChannel(channel.SSHChannel):
+
+    name = 'session'
+
+    def __init__(self):
+        channel.SSHChannel.__init__(self)
+        self.protocol = HTTPChannel()
+        self.protocol.requestFactory = YaybuRequest
+        self.protocol.transport = self
+        self.disconnecting = False
+
+    def openFailed(self, reason):
+        print 'echo failed', reason
+
+    def channelOpen(self, ignoredData):
+        self.data = ''
+        d = self.conn.sendRequest(self, 'exec', common.NS('yaybu --remote -'), wantReply = 1)
+        #d.addCallback(self._cbRequest)
+
+    def _cbRequest(self, ignored):
+        #self.write('hello conch\n')
+        #self.conn.sendEOF(self)
+        pass
+
+    def dataReceived(self, data):
+        self.protocol.dataReceived(data)
+
+    def closed(self):
+        self.loseConnection()
+        reactor.stop()
+
+
+#protocol.ClientCreator(reactor, SimpleTransport).connectTCP(HOST, 22)
+#reactor.run()
+
