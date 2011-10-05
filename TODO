@@ -1,0 +1,47 @@
+
+Alpha 1
+-------
+
+ * twistd plugin creates an Orchestration MultiService and starts reactor
+ * Orchestration service creats a Tasks Service that keeps track of running tasks
+ * Orchestration service loads config (including list of services) via Yay
+ * There is a Deploy task that encapsulates previous working on invoking yaybu through twisted conch
+ * All services are deployed on start up (this can be turned off in config file)
+ * A TimerService subclass creates a Deploy tasks for each service every X minutes (defined in config file)
+ * Shutdown works as expected
+
+
+Alpha 2
+~~~~~~~
+
+ * There is a simple twisted web service that
+   * shows a list of targets (with a deploy button)
+   * shows a list of jobs with cancel buttons
+ * There is a simple web API to trigger deployment
+
+
+Alpha 3
+~~~~~~~
+
+ * There is a plugin system that gets notified:
+    * on deployment start
+    * on log
+    * on resource updated
+    * on deployment finished
+ * There is a sample plugin that sends an email every time a deployment is finished
+ * There is a sample plugin that does something with log output from a deployment
+
+
+Alpha 4
+~~~~~~~
+
+ * There is a clear internal API (and plugin mechanism?) for triggers - minimal code duplication
+   and approach for:
+
+     * Trigger deployment from a Web view
+     * Trigger deployment from a Git push
+     * Trigger deployment from an IRC bot
+     * Trigger deployment from a Timer
+
+ * The API shouldn't get in the way of streaming logs to the initiator.
+

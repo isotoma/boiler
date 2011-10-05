@@ -6,18 +6,21 @@ import struct, sys, getpass, os
 
 from twisted.web.http import HTTPChannel, Request
 
+from yaybuser.task import Task
 
-USER = 'john'
-HOST = 'localhost'
+class YaybuTransport(transport.SSHClientTransport):
 
-class SimpleTransport(transport.SSHClientTransport):
+    def __init__(self, username):
+        transport.SSHClientTransport.__init__(username)
+        self.username = username
+
     def verifyHostKey(self, hostKey, fingerprint):
         print 'host key fingerprint: %s' % fingerprint
-        return defer.succeed(1) 
+        return defer.succeed(1)
 
     def connectionSecure(self):
         self.requestService(
-            SimpleUserAuth(USER,
+            YaybuAuthenticator(self.username,
                 YaybuConnection()))
 
     def getPeer(self):
@@ -27,21 +30,26 @@ class SimpleTransport(transport.SSHClientTransport):
         return ('', )
 
 
-class SimpleUserAuth(userauth.SSHUserAuthClient):
+class YaybuAuthenticator(userauth.SSHUserAuthClient):
+
+    """
+    A service implementing the client side of "ssh-userauth"
+
+    The bulk of this is already provided by ``twisted.conch.ssh.userauth.SSHUserAuthClient``,
+    we just plumb SSH key retrieval in to conch.
+    """
+
     def getPassword(self):
-        return defer.succeed(getpass.getpass("%s@%s's password: " % (USER, HOST)))
+        """
+        We explicitly do not support interactive password logins or storing passwords to other servers
+        """
+        return defer.fail(NotImplementedError())
 
     def getGenericAnswers(self, name, instruction, questions):
-        print name
-        print instruction
-        answers = []
-        for prompt, echo in questions:
-            if echo:
-                answer = raw_input(prompt)
-            else:
-                answer = getpass.getpass(prompt)
-            answers.append(answer)
-        return defer.succeed(answers)
+        """
+        Not implemented as this service is non-interactive
+        """
+        return defer.fail(NotImplementedError())
 
     def getPublicKey(self):
         path = os.path.expanduser('~/.ssh/id_dsa')
@@ -56,13 +64,24 @@ class SimpleUserAuth(userauth.SSHUserAuthClient):
         path = os.path.expanduser('~/.ssh/id_dsa')
         return defer.succeed(keys.Key.fromFile(path).keyObject)
 
+
 class YaybuConnection(connection.SSHConnection):
+
+    """
+    A session representing a connection to a target server.
+
+    Establishes the Yaybu communication channel and SSH credential forwarding.
+    """
 
     def serviceStarted(self):
         self.openChannel(YaybuChannel())
 
 
 class YaybuRequest(Request):
+
+    """
+    A custom request that responds to HTTP-over-SSH requests
+    """
 
     def four_oh_four(self):
         self.setResponseCode(404)
@@ -151,6 +170,21 @@ class YaybuChannel(channel.SSHChannel):
         reactor.stop()
 
 
-#protocol.ClientCreator(reactor, SimpleTransport).connectTCP(HOST, 22)
-#reactor.run()
+class YaybuTask(Task):
+
+    """
+    Provides an interruptable task that actually does a deployment
+    """
+
+    def __init__(self, host, username='root', port=22):
+        self.host = host
+        self.username = username
+        self.port = 22
+
+    def start(self):
+        protocol.ClientCreator(reactor, YaybuTransport(self.username)).connectTCP(self.host, self.port)
+
+    def stop(self):
+        pass
+
 
