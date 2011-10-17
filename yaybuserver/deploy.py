@@ -180,11 +180,14 @@ class YaybuTask(Task):
         self.host = host
         self.username = username
         self.port = 22
+        self.protocol = None
 
+    @defer.inlineCallbacks
     def start(self):
-        protocol.ClientCreator(reactor, YaybuTransport(self.username)).connectTCP(self.host, self.port)
+        self.protocol = yield protocol.ClientCreator(reactor, YaybuTransport(self.username)).connectTCP(self.host, self.port)
 
     def stop(self):
-        pass
-
+        #FIXME: Investigate safer ways to do this, probably need Yaybu to respect signals so we can 'stop after current step' or something
+        #FIXME: Does task API need a graceful stop and a forced stop?
+        self.protocol.transport.loseConnection()
 
