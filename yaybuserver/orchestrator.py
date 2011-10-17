@@ -10,7 +10,8 @@ class Orchestrator(MultiService):
     Orchestrate multiple deployments
     """
 
-    def __init__(self):
+    def __init__(self, config):
+        self.config = config
 
         # Create a tasks queue
         self.tasks = Tasks()

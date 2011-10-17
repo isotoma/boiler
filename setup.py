@@ -22,6 +22,7 @@ setup(name='YaybuServer',
       install_requires=[
           'setuptools',
           'yaybu',
+          'yay',
       ],
       extras_require = {
           'test': ['testtools', 'discover', 'mock'],

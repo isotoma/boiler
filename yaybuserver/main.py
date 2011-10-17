@@ -1,5 +1,9 @@
+import yay
+
 from twisted.application import service
 from twisted.python import usage
+
+from yaybuserver.orchestartor import Orchestrator
 
 
 class Options(usage.Options):
@@ -9,8 +13,6 @@ class Options(usage.Options):
 
 
 def makeService(config):
-    s = service.MultiService()
-
-    return s
-
+    config = yay.load_uri(config['config'])
+    return Orchestrator(config)
 
