@@ -10,9 +10,10 @@ from yaybuser.task import Task
 
 class YaybuTransport(transport.SSHClientTransport):
 
-    def __init__(self, username):
+    def __init__(self, username, yay):
         transport.SSHClientTransport.__init__(username)
         self.username = username
+        self.yay = yay
 
     def verifyHostKey(self, hostKey, fingerprint):
         print 'host key fingerprint: %s' % fingerprint
@@ -21,7 +22,7 @@ class YaybuTransport(transport.SSHClientTransport):
     def connectionSecure(self):
         self.requestService(
             YaybuAuthenticator(self.username,
-                YaybuConnection()))
+                YaybuConnection(self.yay)))
 
     def getPeer(self):
         return ('', )
@@ -73,8 +74,12 @@ class YaybuConnection(connection.SSHConnection):
     Establishes the Yaybu communication channel and SSH credential forwarding.
     """
 
+    def __init__(self, stream):
+        self.stream = stream
+        connection.SSHConnection.__init__()
+
     def serviceStarted(self):
-        self.openChannel(YaybuChannel())
+        self.openChannel(YaybuChannel(self.stream))
 
 
 class YaybuRequest(Request):
@@ -82,6 +87,11 @@ class YaybuRequest(Request):
     """
     A custom request that responds to HTTP-over-SSH requests
     """
+
+    def __init__(self, *a, **kw):
+        self.yay = kw.pop('yay')
+        Request.__init__(self, *a, **kw)
+
 
     def four_oh_four(self):
         self.setResponseCode(404)
@@ -92,7 +102,7 @@ class YaybuRequest(Request):
 
     def process_config(self):
         import pickle
-        body = pickle.dumps(dict(resources=[dict(File=dict(name="/tmp/example"))]))
+        body = pickle.dumps(self.yay)
 
         self.setResponseCode(200)
         self.setHeader("Content-Type", "application/octect-stream")
@@ -142,12 +152,16 @@ class YaybuChannel(channel.SSHChannel):
 
     name = 'session'
 
-    def __init__(self):
+    def __init__(self, yay):
         channel.SSHChannel.__init__(self)
         self.protocol = HTTPChannel()
-        self.protocol.requestFactory = YaybuRequest
+        self.protocol.requestFactory = self.request_factory
         self.protocol.transport = self
         self.disconnecting = False
+        self.yay = yay
+
+    def request_factory(self):
+        return YaybuRequest(self.yay)
 
     def openFailed(self, reason):
         print 'echo failed', reason
@@ -176,11 +190,15 @@ class YaybuTask(Task):
     Provides an interruptable task that actually does a deployment
     """
 
-    def __init__(self, host, username='root', port=22):
+    implements(ITask)
+
+    def __init__(self, host, yay, username='root', port=22):
         self.host = host
         self.username = username
         self.port = 22
         self.protocol = None
+        self.yay = yay
+        self.deferred = defer.Deferred()
 
     @defer.inlineCallbacks
     def start(self):

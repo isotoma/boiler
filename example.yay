@@ -1,0 +1,11 @@
+tasks:
+    - Yaybu:
+        host: foohost
+        port: 22
+        username: god
+        config:
+            resources:
+                - File
+                    name: /tmp/example
+
+

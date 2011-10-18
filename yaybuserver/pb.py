@@ -8,22 +8,26 @@ from twisted.cred.checkers import InMemoryUsernamePasswordDatabaseDontUse
 from twisted.internet import reactor
 from twisted.cred.credentials import UsernamePassword
 
-class DefinedError(pb.Error):
-    pass
-
+import yay
 
 class PbPerspective(pb.Avatar):
 
-    def perspective_echo(self, text):
-        print 'echoing',text
-        return text
+    def perspective_execute(self, yayfile):
+        d = yay.load(yayfile)
+        for task in d['tasks']:
+            assert len(task.keys()) == 1
+            typename, instances = resource.items()[0]
+            if not isinstance(instances, list):
+                instances = [instances]
+            for instance in instances:
+                self.create(typename, instance)
 
-    def perspective_error(self):
-        raise DefinedError("exception!")
+    def create(self):
+        # TODO
+        pass
 
     def logout(self):
-        print self, "logged out"
-
+        pass
 
 class PbRealm:
     implements(IRealm)

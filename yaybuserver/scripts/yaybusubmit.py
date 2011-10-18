@@ -1,4 +1,6 @@
 
+import sys
+
 from twisted.internet import reactor
 from optparse import OptionParser
 from twisted.spread import pb
@@ -6,7 +8,7 @@ from twisted.cred.credentials import UsernamePassword
 
 def run():
 
-    p = OptionParser("%prog [options] TASK [args]")
+    p = OptionParser("%prog [options] [filename]")
     p.add_option("-H", "--hostname", default="localhost", help="Hostname to connect to")
     p.add_option("-p", "--port", default=pb.portno, help="Port to connect to")
     p.add_option("-u", "--username", default="guest", help="Authentication username")
@@ -14,11 +16,17 @@ def run():
     options, args = p.parse_args()
 
     if len(args) == 0:
+        stream = sys.stdin
+    elif len(args) == 1:
+        stream = open(args[0])
+    else:
         p.print_usage()
         raise SystemExit
 
+    task = stream.read()
+
     def success(message):
-        print "Task '%s' finished executing", message
+        print "Task '%s' finished executing" % message
         reactor.stop()
 
     def failure(error):
@@ -27,7 +35,7 @@ def run():
         reactor.stop()
 
     def connected(perspective):
-        perspective.callRemote('executeTask', args).addCallbacks(success, failure)
+        perspective.callRemote('execute', task).addCallbacks(success, failure)
         print "connected."
 
     factory = pb.PBClientFactory()

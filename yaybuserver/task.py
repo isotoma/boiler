@@ -1,3 +1,6 @@
+from zope.interface import implements
+from iyaybuserver import ITask
+
 from twisted.internet import defer
 
 # Need to think carefully about behaviour when failing and interrupted vs success
@@ -7,44 +10,6 @@ class Interrupted(Failure):
     An exception that is raised when a Task is interrupted
     """
     pass
-
-
-class Task(object):
-
-    """
-    Actions performed by Yaybu Server are modelled as a Task. The act of
-    deploying with Yaybu is decoupled from the Task management code to
-    allow other tasks to be orchestrated by Yaybu.
-    """
-
-    def __init__(self):
-        self.deferred = defer.Deferred()
-
-    def whenDone(self):
-        """
-        Returns a deferred that is fired when a task is completed, or when a
-        task has failed
-        """
-        return self.deferred
-
-    def start(self):
-        """
-        Actually execute a task. This only starts a task.
-        """
-        pass
-
-    def stop(self):
-        """
-        Stop this task safely
-        """
-        return defer.succeed()
-
-    def abort(self):
-        """
-        Stop this task immediately and aggressively
-        """
-        return defer.succeed()
-
 
 class CompoundTask(Task):
 
