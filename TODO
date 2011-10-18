@@ -1,4 +1,13 @@
 
+Use Cases
+---------
+
+ * Be able to trigger a deployment from the web and view live logs
+ * Be able to trigger a deployment from a 'git push' and route live status updates to it (this will be a command line tool that is used as a pre-recieve hook)
+ * Be able to trigger deployments from an IRC bot
+ * Pluggable status and trigger end points
+
+
 Alpha 1
 -------
 
