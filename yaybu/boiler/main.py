@@ -3,7 +3,7 @@ import yay
 from twisted.application import service
 from twisted.python import usage
 
-from yaybuserver.orchestartor import Orchestrator
+from yaybu.boiler.orchestartor import Orchestrator
 
 
 class Options(usage.Options):

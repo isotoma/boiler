@@ -6,7 +6,8 @@ import struct, sys, getpass, os
 
 from twisted.web.http import HTTPChannel, Request
 
-from yaybuser.task import Task
+from yaybu.boiler.task import Task
+
 
 class YaybuTransport(transport.SSHClientTransport):
 

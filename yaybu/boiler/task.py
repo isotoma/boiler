@@ -1,5 +1,5 @@
 from zope.interface import implements
-from iyaybuserver import ITask
+from yaybu.boiler.iyaybuserver import ITask
 
 from twisted.internet import defer
 

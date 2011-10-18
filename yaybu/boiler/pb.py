@@ -22,12 +22,13 @@ class PbPerspective(pb.Avatar):
             for instance in instances:
                 self.create(typename, instance)
 
-    def create(self):
+    def create(self, typename, instance):
         # TODO
         pass
 
     def logout(self):
         pass
+
 
 class PbRealm:
     implements(IRealm)
