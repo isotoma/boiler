@@ -27,5 +27,10 @@ setup(name='YaybuServer',
       extras_require = {
           'test': ['testtools', 'discover', 'mock'],
           },
+      entry_points = {
+        "console_scripts": [
+            'yaybusubmit=yaybuserver.scripts.yaybusubmit:run',
+            ]
+        }
       )
 

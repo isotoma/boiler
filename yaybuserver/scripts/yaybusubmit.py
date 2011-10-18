@@ -2,15 +2,20 @@
 from twisted.internet import reactor
 from optparse import OptionParser
 from twisted.spread import pb
+from twisted.cred.credentials import UsernamePassword
 
-def execute_task():
+def run():
 
-    p = OptionParser("useage: %prog [options] TASK [args]")
-    p.add_option("-h", "--hostname", description="Hostname to connect to")
-    p.add_option("-p", "--port", default=pb.portno, description="Port to connect to")
-    p.add_option("-u", "--username", default="guest", description="Authentication username")
-    p.add_option("-P", "--password", default="guest", description="Password")
+    p = OptionParser("%prog [options] TASK [args]")
+    p.add_option("-H", "--hostname", default=None, help="Hostname to connect to")
+    p.add_option("-p", "--port", default=pb.portno, help="Port to connect to")
+    p.add_option("-u", "--username", default="guest", help="Authentication username")
+    p.add_option("-P", "--password", default="guest", help="Password")
     options, args = p.parse_args()
+
+    if options.hostname is None:
+        p.print_usage()
+        raise SystemExit
 
     def success(message):
         print "Task '%s' finished executing", message
