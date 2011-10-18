@@ -17,6 +17,7 @@ setup(name='YaybuServer',
           "License :: OSI Approved :: Apache Software License",
       ],
       packages=find_packages(exclude=['ez_setup']),
+      namespace_packages=['yaybu'],
       include_package_data=True,
       zip_safe=False,
       install_requires=[
@@ -29,8 +30,8 @@ setup(name='YaybuServer',
           },
       entry_points = {
         "console_scripts": [
-            'yaybusubmit=yaybuserver.scripts.yaybusubmit:run',
-            'yaybuserver=yaybuserver.scripts.yaybuserver:run',
+            'yaybusubmit=yaybu.boiler.scripts.yaybusubmit:run',
+            'yaybuserver=yaybu.boiler.scripts.yaybuserver:run',
             ]
         }
       )
