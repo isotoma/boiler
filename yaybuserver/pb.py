@@ -35,14 +35,3 @@ class PbRealm:
         raise NotImplementedError("no interface")
 
 
-def main_server():
-    portal = Portal(PbRealm())
-
-    checker = InMemoryUsernamePasswordDatabaseDontUse()
-    checker.addUser("guest", "guest")
-    portal.registerChecker(checker)
-
-    reactor.listenTCP(pb.portno, pb.PBServerFactory(portal))
-    reactor.run()
-
-

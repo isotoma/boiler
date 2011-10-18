@@ -30,6 +30,7 @@ setup(name='YaybuServer',
       entry_points = {
         "console_scripts": [
             'yaybusubmit=yaybuserver.scripts.yaybusubmit:run',
+            'yaybuserver=yaybuserver.scripts.yaybuserver:run',
             ]
         }
       )

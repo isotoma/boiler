@@ -7,13 +7,13 @@ from twisted.cred.credentials import UsernamePassword
 def run():
 
     p = OptionParser("%prog [options] TASK [args]")
-    p.add_option("-H", "--hostname", default=None, help="Hostname to connect to")
+    p.add_option("-H", "--hostname", default="localhost", help="Hostname to connect to")
     p.add_option("-p", "--port", default=pb.portno, help="Port to connect to")
     p.add_option("-u", "--username", default="guest", help="Authentication username")
     p.add_option("-P", "--password", default="guest", help="Password")
     options, args = p.parse_args()
 
-    if options.hostname is None:
+    if len(args) == 0:
         p.print_usage()
         raise SystemExit
 
@@ -22,8 +22,8 @@ def run():
         reactor.stop()
 
     def failure(error):
-        t = error.trap(DefinedError)
-        print "error received:", t
+        #t = error.trap(DefinedError)
+        print "error received:", error
         reactor.stop()
 
     def connected(perspective):
