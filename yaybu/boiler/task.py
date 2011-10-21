@@ -11,7 +11,8 @@ class Interrupted(Failure):
     """
     pass
 
-class CompoundTask(Task):
+
+class SerialTask(Task):
 
     """
     A set of tasks that should be performed in sequence.
@@ -48,6 +49,45 @@ class CompoundTask(Task):
         """ Clears any remaining subtasks and aborts the current one """
         self.tasks = []
         return self.current.abort()
+
+
+class ParallelTask(Task):
+
+   """
+   A set of tasks that can be executed in parallel
+   """
+
+   def __init__(self, *tasks):
+        super(Task, self).__init__()
+        self.tasks = tasks
+        self.current = None
+        self.deferred = defer.Deferred()
+
+    def addTask(self, task):
+        self.tasks.append(task)
+
+    def start(self):
+        """
+        Start all tasks in this group. When all tasks have finished 
+        """
+        d = defer.DeferredList([t.whenDone() for t in self.tasks])
+        d.addCallbacks(self.deferred.callback, self.deferred.errback)
+
+        [t.start() for t in self.tasks]
+
+    def stop(self):
+        """
+        Stop all tasks in this group and return a DeferredList that fires
+        when they have all stopped.
+        """
+        return defer.DeferredList([t.stop() for t in self.tasks])
+
+    def abort(self):
+        """
+        Abort all tasks in this group and return a DeferredList that fires
+        when they have all aborted.
+        """
+        return defer.DeferredList([t.abort() for t in self.tasks])
 
 
 class Tasks(Service):

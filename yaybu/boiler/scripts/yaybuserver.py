@@ -17,6 +17,7 @@ else:
     from twisted.scripts._twistd_unix import ServerOptions, \
     UnixApplicationRunner as _SomeApplicationRunner
 
+from yaybu.boiler.boiler import Boiler
 
 class YaybuServerOptions(ServerOptions):
 
@@ -42,7 +43,10 @@ class YaybuApplicationRunner(_SomeApplicationRunner):
 
         application = service.Application("Yaybu Server")
 
-        portal = Portal(PbRealm())
+        boiler = Boiler()
+        boiler.setServiceParent(application)
+
+        portal = Portal(PbRealm(boiler))
 
         checker = InMemoryUsernamePasswordDatabaseDontUse()
         checker.addUser("guest", "guest")

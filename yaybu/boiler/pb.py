@@ -12,30 +12,26 @@ import yay
 
 class PbPerspective(pb.Avatar):
 
-    def perspective_execute(self, yayfile):
-        d = yay.load(yayfile)
-        for task in d['tasks']:
-            assert len(task.keys()) == 1
-            typename, instances = resource.items()[0]
-            if not isinstance(instances, list):
-                instances = [instances]
-            for instance in instances:
-                self.create(typename, instance)
+    def __init__(self, boiler):
+        self.boiler = boiler
 
-    def create(self, typename, instance):
-        # TODO
-        pass
+    def perspective_execute(self, yayfile):
+        t = self.boiler.execute_yay(yayfile)
 
     def logout(self):
         pass
 
 
-class PbRealm:
+class PbRealm(object):
+
     implements(IRealm)
+
+    def __init__(self, boiler):
+        self.boiler = boiler
 
     def requestAvatar(self, avatarId, mind, *interfaces):
         if pb.IPerspective in interfaces:
-            avatar = PbPerspective()
+            avatar = PbPerspective(self.boiler)
             return pb.IPerspective, avatar, avatar.logout
         raise NotImplementedError("no interface")
 
