@@ -11,21 +11,22 @@ class Boiler(MultiService):
     Orchestrate multiple deployments
     """
 
-    def __init__(self, config):
+    def __init__(self, config=None):
+        MultiService.__init__(self)
         self.config = config
 
         # Create a tasks queue
         self.tasks = Tasks()
         self.tasks.setServiceParent(self)
 
-    def execute_yay(self, yay):
+    def execute_yay(self, stream):
         """
         Takes a stream containing tasks encoded as Yay and executes them.
 
         Returns an object implementing ITask for tracking execution of
         the tasks.
         """
-        d = yay.load(yay)
+        d = yay.load(stream)
         p = ParallelTask()
         for task in d['tasks']:
             assert len(task.keys()) == 1
