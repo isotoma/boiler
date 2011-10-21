@@ -30,8 +30,8 @@ setup(name='YaybuServer',
           },
       entry_points = {
         "console_scripts": [
-            'yaybusubmit=yaybu.boiler.scripts.yaybusubmit:run',
-            'yaybuserver=yaybu.boiler.scripts.yaybuserver:run',
+            'boil=yaybu.boiler.scripts.boil:run',
+            'boiler=yaybu.boiler.scripts.boiler:run',
             ]
         }
       )
