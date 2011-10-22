@@ -31,7 +31,7 @@ class SerialTask(object):
     def add(self, task):
         self.tasks.append(task)
 
-    def startNext(self):
+    def startNext(self, val=None):
         """ Get the next task and start it. That task is set to call back when it is finished. """
         if not self.tasks:
             self.deferred.callback(True)
