@@ -25,9 +25,6 @@ setup(name='Boiler',
           'yaybu',
           'yay >= 0.0.24',
       ],
-      extras_require = {
-          'test': ['testtools', 'discover', 'mock'],
-          },
       entry_points = {
         "console_scripts": [
             'boil=yaybu.boiler.scripts.boil:run',
