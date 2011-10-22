@@ -11,8 +11,16 @@ class TimedDeployment(TimerService):
         TimerService.__init__(step, self.fire)
 
     def fire(self):
-        t = DeployTask("localhost")
-        self.parent.queueTask(t)
-        return t.whenDone()
+        """ I am called every 5 minutes by TimerService and run some Yay """
 
+        t = self.parent.execute_yay("""
+            host: localhost
+            port: 22
+            config:
+                resources:
+                  - File:
+                      name: /tmp/foo
+            """)
+
+        return t.whenDone()
 

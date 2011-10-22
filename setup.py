@@ -3,10 +3,10 @@ import os
 
 version = '0.0.0dev'
 
-setup(name='YaybuServer',
+setup(name='Boiler',
       version=version,
       url="http://yaybu.com/",
-      description="Yaybu Orchestrator",
+      description="Yaybu Boiler",
       long_description=open("README.rst").read(),
       author="Isotoma Limited",
       author_email="support@isotoma.com",
@@ -30,8 +30,8 @@ setup(name='YaybuServer',
           },
       entry_points = {
         "console_scripts": [
-            'yaybusubmit=yaybu.boiler.scripts.yaybusubmit:run',
-            'yaybuserver=yaybu.boiler.scripts.yaybuserver:run',
+            'boil=yaybu.boiler.scripts.boil:run',
+            'boiler=yaybu.boiler.scripts.boiler:run',
             ]
         }
       )

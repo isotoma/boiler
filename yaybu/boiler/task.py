@@ -2,16 +2,18 @@ from zope.interface import implements
 from yaybu.boiler.iyaybuserver import ITask
 
 from twisted.internet import defer
+from twisted.application import service
 
 # Need to think carefully about behaviour when failing and interrupted vs success
 
-class Interrupted(Failure):
+class Interrupted(BaseException):
     """
     An exception that is raised when a Task is interrupted
     """
     pass
 
-class CompoundTask(Task):
+
+class SerialTask(object):
 
     """
     A set of tasks that should be performed in sequence.
@@ -19,22 +21,28 @@ class CompoundTask(Task):
     Perhaps you use Fabric to poke Nagios on a second server after deploying to the first.
     """
 
-    def __init__(self, *tasks):
-        super(Task, self).__init__()
-        self.tasks = tasks
-        self.current = None
+    implements(ITask)
 
-    def addTask(self, task):
+    def __init__(self, *tasks):
+        self.tasks = list(tasks)
+        self.current = None
+        self.deferred = defer.Deferred()
+
+    def add(self, task):
         self.tasks.append(task)
 
     def startNext(self):
         """ Get the next task and start it. That task is set to call back when it is finished. """
         if not self.tasks:
+            self.deferred.callback(True)
             return
         self.current = t = self.tasks[0]
         del self.tasks[0]
         t.whenDone().addCallback(self.startNext)
         t.start()
+
+    def whenDone(self):
+        return self.deferred
 
     def start(self):
         self.startNext()
@@ -50,7 +58,50 @@ class CompoundTask(Task):
         return self.current.abort()
 
 
-class Tasks(Service):
+class ParallelTask(object):
+
+    """
+    A set of tasks that can be executed in parallel
+    """
+
+    implements(ITask)
+
+    def __init__(self, *tasks):
+        self.tasks = list(tasks)
+        self.current = None
+        self.deferred = defer.Deferred()
+
+    def add(self, task):
+        self.tasks.append(task)
+
+    def whenDone(self):
+        return self.deferred
+
+    def start(self):
+        """
+        Start all tasks in this group. When all tasks have finished 
+        """
+        d = defer.DeferredList([t.whenDone() for t in self.tasks])
+        d.addCallbacks(self.deferred.callback, self.deferred.errback)
+
+        [t.start() for t in self.tasks]
+
+    def stop(self):
+        """
+        Stop all tasks in this group and return a DeferredList that fires
+        when they have all stopped.
+        """
+        return defer.DeferredList([t.stop() for t in self.tasks])
+
+    def abort(self):
+        """
+        Abort all tasks in this group and return a DeferredList that fires
+        when they have all aborted.
+        """
+        return defer.DeferredList([t.abort() for t in self.tasks])
+
+
+class Tasks(service.Service):
 
     """
     Manages any tasks that are in progress
@@ -63,7 +114,6 @@ class Tasks(Service):
     """
 
     def __init__(self):
-        Service.__init__(self)
         self.active = []
 
     def add(self, task):
