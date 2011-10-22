@@ -23,7 +23,7 @@ setup(name='Boiler',
       install_requires=[
           'setuptools',
           'yaybu',
-          'yay',
+          'yay >= 0.0.24',
       ],
       extras_require = {
           'test': ['testtools', 'discover', 'mock'],
