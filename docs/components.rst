@@ -1,7 +1,7 @@
 Components
 ==========
 
-Yaybu Server is primarily a set of loosely coupled components that can be
+Boiler is primarily a set of loosely coupled components that can be
 integrated to suit your particular needs rather than a monolithic one-purpose
 system.
 
@@ -9,9 +9,9 @@ system.
 Tasks
 -----
 
-Actions performed by Yaybu Server are modelled as a Task. The act of
+Actions performed by Boiler are modelled as a Task. The act of
 deploying with Yaybu is seperated from the Task management code to
-allow other tasks to be orchestrated by Yaybu.
+allow other tasks to be orchestrated by it.
 
 See Task, CompondTask, Tasks
 

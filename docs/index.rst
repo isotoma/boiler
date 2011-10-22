@@ -1,7 +1,8 @@
-Yaybu Server
-============
+Boiler
+======
 
-Yaybu Server is a framework built with Twisted for coordinating deployments.
+Boiler is a framework built with Twisted for coordinating tasks such as server
+deployments and provisioning.
 
 Contents:
 
