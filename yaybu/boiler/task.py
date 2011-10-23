@@ -1,5 +1,6 @@
 from zope.interface import implements
 from yaybu.boiler.iyaybuserver import ITask
+from yaybu.boiler.type import Instanceable
 
 from twisted.internet import defer
 from twisted.application import service
@@ -13,7 +14,15 @@ class Interrupted(BaseException):
     pass
 
 
-class SerialTask(object):
+class TaskType(Instanceable):
+    pass
+
+
+class Task(object):
+    __metaclass__ = TaskType
+
+
+class SerialTask(Task):
 
     """
     A set of tasks that should be performed in sequence.
@@ -58,7 +67,7 @@ class SerialTask(object):
         return self.current.abort()
 
 
-class ParallelTask(object):
+class ParallelTask(Task):
 
     """
     A set of tasks that can be executed in parallel

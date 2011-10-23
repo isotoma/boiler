@@ -2,7 +2,7 @@
 from twisted.application.service import MultiService
 
 import yay
-from yaybu.boiler.task import Tasks, ParallelTask
+from yaybu.boiler.task import Tasks, ParallelTask, TaskType
 
 
 class Boiler(MultiService):
@@ -27,20 +27,8 @@ class Boiler(MultiService):
         the tasks.
         """
         d = yay.load(stream)
-        p = ParallelTask()
-        for task in d['tasks']:
-            assert len(task.keys()) == 1
-            typename, instances = task.items()[0]
-            if not isinstance(instances, list):
-                instances = [instances]
-            for instance in instances:
-                t = self.create(typename, instance)
-                p.add(t)
+        p = ParallelTask(TaskType.create_all(d['tasks'])
         self.tasks.add(p)
         return p
-
-    def create(self, typename, instance):
-        # TODO
-        pass
 
 
