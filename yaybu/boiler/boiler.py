@@ -27,7 +27,7 @@ class Boiler(MultiService):
         the tasks.
         """
         d = yay.load(stream)
-        p = ParallelTask(TaskType.create_all(d['tasks'])
+        p = ParallelTask(TaskType.create_all(d['tasks']))
         self.tasks.add(p)
         return p
 

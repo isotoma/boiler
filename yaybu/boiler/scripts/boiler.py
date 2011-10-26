@@ -5,9 +5,8 @@ import os
 
 from twisted.python import usage
 from twisted.python.util import sibpath
-from twisted.spread import pb
 
-from twisted.application import app
+from twisted.application import app, service
 from twisted.python.runtime import platformType
 
 if platformType == "win32":
@@ -17,43 +16,70 @@ else:
     from twisted.scripts._twistd_unix import ServerOptions, \
     UnixApplicationRunner as _SomeApplicationRunner
 
+import yay, StringIO
 from yaybu.boiler.boiler import Boiler
+from yaybu.boiler.service import ServiceType
+import yaybu.boiler.services
 
-class YaybuServerOptions(ServerOptions):
+
+class StartOptions(ServerOptions):
+
+    """
+    Options for starting a boiler daemon.
+
+    Subclasses ServerOptions from twistd - either a Unix or Win32 version.
+    """
+
+    longdesc = "Start the service"
 
     @property
     def subCommands(self):
-        yield ("start", None, lambda: usage.Options(), "Start the server")
-        yield ("stop", None, lambda: usage.Options(), "Stop the server")
+        # There are no subcommands for start - but twistd uses a hasattr check
+        # so we have to raise an AttributeError to trick it
+        raise AttributeError
+
+    @property
+    def synopsis(self):
+        # Need to undo the fact that ServerOptions overrides the default synopsis
+        # as it stops us nesting the ServerOptions
+        raise AttributeError
+
+
+class StopOptions(usage.Options):
+
+    longdesc = "Stop the service"
+
+
+class Options(usage.Options):
+    subCommands = [
+        ['start', None, StartOptions, "Start the service"],
+        ['stop', None, StopOptions, "Stop the service"],
+        ]
+
+    optParameters = [
+        ['config', 'c', '/etc/yaybu-boiler', 'Server configuration file'],
+        ]
+
+    def postOptions(self):
+        if not "config" in self:
+            raise usage.UsageError("No configuration file provided")
+
+        if not os.path.exists(self['config']):
+            raise usage.UsageError("The configuration file '%s' does not exist" % self['config'])
 
 
 class YaybuApplicationRunner(_SomeApplicationRunner):
 
     def createOrGetApplication(self):
-        import os
-
-        from twisted.application import service, internet
-        from twisted.spread import pb
-        from twisted.cred.portal import Portal
-        from twisted.cred.checkers import InMemoryUsernamePasswordDatabaseDontUse
-
-        from yaybu.boiler.pb import PbRealm
-
-        port = int(os.environ["YAYBU_SERVER_PORT"])
-
         application = service.Application("Yaybu Server")
 
         boiler = Boiler()
         boiler.setServiceParent(application)
 
-        portal = Portal(PbRealm(boiler))
+        config = yay.load_uri(self.config.parent["config"])
 
-        checker = InMemoryUsernamePasswordDatabaseDontUse()
-        checker.addUser("guest", "guest")
-        portal.registerChecker(checker)
-
-        service = internet.TCPServer(port, pb.PBServerFactory(portal))
-        service.setServiceParent(application)
+        for subservice in ServiceType.create_all(config.get("services", [])):
+            subservice.setServiceParent(boiler)
 
         return application
 
@@ -63,19 +89,17 @@ def runApp(config):
 
 
 def run():
-    config = YaybuServerOptions()
+    config = Options()
 
     try:
         config.parseOptions()
     except usage.error, ue:
-        print config
-        print "%s: %s" % (sys.argv[0], ue)
+        print "Error: %s" % ue
+        print config.opt_help()
         sys.exit(1)
 
     if config.subCommand == "start":
-        # we pass arguments through to the tac file using the environment
-        os.environ["YAYBU_SERVER_PORT"] = str(8787)
-        app.run(runApp, YaybuServerOptions)
+        YaybuApplicationRunner(config.subOptions).run()
 
     elif config.subCommand == "stop":
         try:
@@ -86,6 +110,6 @@ def run():
         os.kill(pid, 15)
 
     else:
-        usage()
-        return 255
+        config.opt_help()
+        sys.exit(1)
 
