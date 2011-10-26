@@ -1,8 +1,8 @@
 
 from twisted.application.internet import TimerService
-from yaybu.boiler.service import BoilerService
+from yaybu.boiler.service import BaseService
 
-class TimedDeployment(BoilerService):
+class TimedDeployment(BaseService):
     """
     Queues a deployment every 5 minutes, but only when the previous one has finished.
     """

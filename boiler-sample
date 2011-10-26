@@ -1,0 +1,4 @@
+services:
+  - PbService:
+      port: 8787
+

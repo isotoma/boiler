@@ -60,6 +60,13 @@ class Options(usage.Options):
         ['config', 'c', '/etc/yaybu-boiler', 'Server configuration file'],
         ]
 
+    def postOptions(self):
+        if not "config" in self:
+            raise usage.UsageError("No configuration file provided")
+
+        if not os.path.exists(self['config']):
+            raise usage.UsageError("The configuration file '%s' does not exist" % self['config'])
+
 
 class YaybuApplicationRunner(_SomeApplicationRunner):
 
@@ -69,11 +76,7 @@ class YaybuApplicationRunner(_SomeApplicationRunner):
         boiler = Boiler()
         boiler.setServiceParent(application)
 
-        config = yay.load(StringIO.StringIO("""
-            services:
-                - PbService:
-                      port: 8787
-             """))
+        config = yay.load_uri(self.config.parent["config"])
 
         for subservice in ServiceType.create_all(config.get("services", [])):
             subservice.setServiceParent(boiler)
@@ -91,6 +94,7 @@ def run():
     try:
         config.parseOptions()
     except usage.error, ue:
+        print "Error: %s" % ue
         print config.opt_help()
         sys.exit(1)
 
