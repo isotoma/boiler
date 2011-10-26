@@ -1,2 +1,2 @@
-from yaybu.boiler.services import pb, timer
+from yaybu.boiler.services import pb, timer, web
 

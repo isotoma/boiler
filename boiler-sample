@@ -1,4 +1,6 @@
 services:
   - PbService:
       port: 8787
+  - WebService:
+      port: 8080
 
