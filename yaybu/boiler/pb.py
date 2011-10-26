@@ -8,7 +8,8 @@ from twisted.cred.checkers import InMemoryUsernamePasswordDatabaseDontUse
 from twisted.internet import reactor
 from twisted.cred.credentials import UsernamePassword
 
-import yay
+from yaybu.boiler.service import BoilerService
+
 
 class PbPerspective(pb.Avatar):
 
@@ -35,4 +36,16 @@ class PbRealm(object):
             return pb.IPerspective, avatar, avatar.logout
         raise NotImplementedError("no interface")
 
+
+class PbService(BoilerService):
+
+    def __init__(self, port=8787):
+        portal = Portal(PbRealm(boiler))
+
+        checker = InMemoryUsernamePasswordDatabaseDontUse()
+        checker.addUser("guest", "guest")
+        portal.registerChecker(checker)
+
+        service = strports.service(port, pb.PBServerFactory(portal))
+        service.setServiceParent(self)
 

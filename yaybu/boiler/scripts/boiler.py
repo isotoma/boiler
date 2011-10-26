@@ -30,30 +30,19 @@ class YaybuServerOptions(ServerOptions):
 class YaybuApplicationRunner(_SomeApplicationRunner):
 
     def createOrGetApplication(self):
-        import os
-
-        from twisted.application import service, internet
-        from twisted.spread import pb
-        from twisted.cred.portal import Portal
-        from twisted.cred.checkers import InMemoryUsernamePasswordDatabaseDontUse
-
-        from yaybu.boiler.pb import PbRealm
-
-        port = int(os.environ["YAYBU_SERVER_PORT"])
-
         application = service.Application("Yaybu Server")
 
         boiler = Boiler()
         boiler.setServiceParent(application)
 
-        portal = Portal(PbRealm(boiler))
+        config = yay.load(StringIO("""
+            services:
+                - PbService:
+                      port: 8787
+             """))
 
-        checker = InMemoryUsernamePasswordDatabaseDontUse()
-        checker.addUser("guest", "guest")
-        portal.registerChecker(checker)
-
-        service = internet.TCPServer(port, pb.PBServerFactory(portal))
-        service.setServiceParent(application)
+        for subservice in ServiceType.create_all(config.get("services", [])):
+            subservice.setServiceParent(boiler)
 
         return application
 
@@ -73,8 +62,6 @@ def run():
         sys.exit(1)
 
     if config.subCommand == "start":
-        # we pass arguments through to the tac file using the environment
-        os.environ["YAYBU_SERVER_PORT"] = str(8787)
         app.run(runApp, YaybuServerOptions)
 
     elif config.subCommand == "stop":
