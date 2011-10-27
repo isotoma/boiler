@@ -98,10 +98,6 @@ class YaybuApplicationRunner(_SomeApplicationRunner):
         return application
 
 
-def runApp(config):
-    YaybuApplicationRunner(config).run()
-
-
 def run():
     config = Options()
 
