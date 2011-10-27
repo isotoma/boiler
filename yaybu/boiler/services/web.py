@@ -2,7 +2,7 @@
 from twisted.application import strports, service
 from twisted.web import server, static
 from twisted.web.resource import Resource
-from twisted.internet import reactor
+from twisted.internet import reactor, defer
 
 
 from yaybu.boiler.service import BaseService
