@@ -204,8 +204,6 @@ class YaybuTask(Task):
     Provides an interruptable task that actually does a deployment
     """
 
-    implements(ITask)
-
     def __init__(self, host, yay, username='root', port=22):
         self.host = host
         self.username = username

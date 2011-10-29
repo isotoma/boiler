@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from pkg_resources import iter_entry_points
 from twisted.application import service
 
 from yaybu.boiler.type import Instanceable
@@ -26,4 +27,9 @@ class BaseService(object, service.MultiService):
 
     def __init__(self):
         service.MultiService.__init__(self)
+
+
+# Make sure any classes that implement this service type are loaded
+for ep in iter_entry_points(group='boiler.service', name=None):
+    ep.load()
 

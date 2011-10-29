@@ -29,7 +29,13 @@ setup(name='Boiler',
         "console_scripts": [
             'boil=yaybu.boiler.scripts.boil:run',
             'boiler=yaybu.boiler.scripts.boiler:run',
-            ]
+            ],
+        "boiler.service": [
+            "services = yaybu.boiler.services",
+            ],
+        "boiler.task": [
+            "tasks = yaybu.boiler.tasks",
+            ],
         }
       )
 

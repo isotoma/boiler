@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from pkg_resources import iter_entry_points
 from zope.interface import implements
 
 from twisted.internet import defer
@@ -161,4 +162,9 @@ class Tasks(service.Service):
         Aborts again in-flight deployments or wait for them to finish?
         """
         return self.stopAllTasks()
+
+
+# Make sure that any classes that provide Boiler tasks are implemented
+for ep in iter_entry_points(group='boiler.task', name=None):
+    ep.load()
 
