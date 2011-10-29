@@ -13,12 +13,10 @@
 # limitations under the License.
 
 from pkg_resources import iter_entry_points
-from zope.interface import implements
 
 from twisted.internet import defer
 from twisted.application import service
 
-from yaybu.boiler.iyaybuserver import ITask
 from yaybu.boiler.type import Instanceable
 
 # Need to think carefully about behaviour when failing and interrupted vs success
@@ -45,8 +43,6 @@ class SerialTask(Task):
 
     Perhaps you use Fabric to poke Nagios on a second server after deploying to the first.
     """
-
-    implements(ITask)
 
     def __init__(self, *tasks):
         self.tasks = list(tasks)
@@ -88,8 +84,6 @@ class ParallelTask(Task):
     """
     A set of tasks that can be executed in parallel
     """
-
-    implements(ITask)
 
     def __init__(self, *tasks):
         self.tasks = list(tasks)
