@@ -19,6 +19,7 @@ import struct, sys, getpass, os
 
 from twisted.web.http import HTTPChannel, Request
 
+from yaybu.boiler.events import EventDescriptor
 from yaybu.boiler.task import Task
 
 
@@ -202,6 +203,14 @@ class YaybuTask(Task):
 
     """
     Provides an interruptable task that actually does a deployment
+    """
+
+    resource_changed = EventDescriptor("resource_changed")
+    """
+    This event is fired every time Yaybu finishes changing a resource.
+
+    It is fired with the name of the resource and the log for changes made to
+    that resource.
     """
 
     def __init__(self, host, yay, username='root', port=22):
