@@ -9,9 +9,9 @@ system.
 Tasks
 -----
 
-Actions performed by Boiler are modelled as a Task. The act of
-deploying with Yaybu is seperated from the Task management code to
-allow other tasks to be orchestrated by it.
+Actions performed by Boiler are modelled as a Task. The act of deploying with
+Yaybu is seperated from the Task management code to allow other tasks to be
+orchestrated by it.
 
 See Task, CompondTask, Tasks
 

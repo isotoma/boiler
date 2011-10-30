@@ -10,6 +10,8 @@ Contents:
    :maxdepth: 2
 
     usecases
+    components
+    hacking
 
 
 Indices and tables
