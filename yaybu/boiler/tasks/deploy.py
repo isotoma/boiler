@@ -24,10 +24,10 @@ from yaybu.boiler.task import Task
 
 class YaybuTransport(transport.SSHClientTransport):
 
-    def __init__(self, username, yay):
+    def __init__(self, task):
         transport.SSHClientTransport.__init__(username)
-        self.username = username
-        self.yay = yay
+        self.username = task.username
+        self.task = task
 
     def verifyHostKey(self, hostKey, fingerprint):
         print 'host key fingerprint: %s' % fingerprint
@@ -36,7 +36,7 @@ class YaybuTransport(transport.SSHClientTransport):
     def connectionSecure(self):
         self.requestService(
             YaybuAuthenticator(self.username,
-                YaybuConnection(self.yay)))
+                YaybuConnection(self.task)))
 
     def getPeer(self):
         return ('', )
@@ -88,12 +88,12 @@ class YaybuConnection(connection.SSHConnection):
     Establishes the Yaybu communication channel and SSH credential forwarding.
     """
 
-    def __init__(self, stream):
-        self.stream = stream
+    def __init__(self, task):
+        self.task = task
         connection.SSHConnection.__init__()
 
     def serviceStarted(self):
-        self.openChannel(YaybuChannel(self.stream))
+        self.openChannel(YaybuChannel(self.task))
 
 
 class YaybuRequest(Request):
@@ -103,7 +103,7 @@ class YaybuRequest(Request):
     """
 
     def __init__(self, *a, **kw):
-        self.yay = kw.pop('yay')
+        self.task = kw.pop('task')
         Request.__init__(self, *a, **kw)
 
 
@@ -166,16 +166,16 @@ class YaybuChannel(channel.SSHChannel):
 
     name = 'session'
 
-    def __init__(self, yay):
+    def __init__(self, task):
         channel.SSHChannel.__init__(self)
         self.protocol = HTTPChannel()
         self.protocol.requestFactory = self.request_factory
         self.protocol.transport = self
         self.disconnecting = False
-        self.yay = yay
+        self.task = task
 
     def request_factory(self):
-        return YaybuRequest(self.yay)
+        return YaybuRequest(self.task)
 
     def openFailed(self, reason):
         print 'echo failed', reason
@@ -214,7 +214,7 @@ class YaybuTask(Task):
 
     @defer.inlineCallbacks
     def start(self):
-        self.protocol = yield protocol.ClientCreator(reactor, YaybuTransport(self.username)).connectTCP(self.host, self.port)
+        self.protocol = yield protocol.ClientCreator(reactor, YaybuTransport(self)).connectTCP(self.host, self.port)
 
     def stop(self):
         #FIXME: Investigate safer ways to do this, probably need Yaybu to respect signals so we can 'stop after current step' or something
